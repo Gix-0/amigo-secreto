@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Amigo Secreto 🎁</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f8f9fa;
+      margin: 0;
+      padding: 40px;
+    }
+    h1 {
+      color: #333;
+    }
+    #ruleta {
+      margin: 30px auto;
+      width: 200px;
+      height: 200px;
+      border: 8px solid #444;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(45deg, #ff6b6b, #5f27cd, #10ac84, #feca57);
+      background-size: 600% 600%;
+      animation: mover 10s ease infinite;
+    }
+    @keyframes mover {
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+    button, select {
+      margin-top: 20px;
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    button {
+      background: #1dd1a1;
+      color: white;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #10ac84;
+    }
+    select {
+      background: #f1f2f6;
+      border: 2px solid #ccc;
+    }
+    /* Popup */
+    #popup {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    #popup-content {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      text-align: center;
+      max-width: 300px;
+      font-size: 20px;
+      box-shadow: 0px 4px 12px rgba(0,0,0,0.3);
+      animation: aparecer 0.4s ease;
+    }
+    @keyframes aparecer {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    #popup button {
+      margin-top: 15px;
+      background: #ff6b6b;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎁 Juego del Amigo Secreto 🎁</h1>
+
+  <p>Selecciona tu nombre y gira la ruleta:</p>
+  <select id="jugador">
+    <option value="">-- Elige tu nombre --</option>
+  </select>
+  <br>
+  <button onclick="girar()">🎲 Girar Ruleta</button>
+
+  <div id="ruleta">?</div>
+
+  <!-- Popup secreto -->
+  <div id="popup">
+    <div id="popup-content">
+      <p id="popup-text"></p>
+      <button onclick="cerrarPopup()">Cerrar</button>
+    </div>
+  </div>
+
+  <script>
+    let participantes = ["Albita", "Cristy", "Edison", "Santiago", "Damaris", "Gina", "Zulma", "Alfonso", "Camila", "Sofia", "Rubiela", "Fredy", "Karol" , "Kevin", "Wendy", "Cristian", "Bibiana", "Erick", "Gabriela", "Daniela", "Sebastian"];
+    let asignaciones = {};
+    let jugadoresRestantes = [];
+
+    // Llenar el select con los participantes
+    function llenarSelect() {
+      let select = document.getElementById("jugador");
+      participantes.forEach(nombre => {
+        let option = document.createElement("option");
+        option.value = nombre;
+        option.textContent = nombre;
+        select.appendChild(option);
+      });
+    }
+
+    // Hacer sorteo válido (nadie se saca a sí mismo)
+    function sortear() {
+      while (true) {
+        let sorteados = [...participantes];
+        sorteados.sort(() => Math.random() - 0.5);
+
+        let valido = true;
+        for (let i = 0; i < participantes.length; i++) {
+          if (participantes[i] === sorteados[i]) {
+            valido = false;
+            break;
+          }
+        }
+        if (valido) {
+          asignaciones = {};
+          for (let i = 0; i < participantes.length; i++) {
+            asignaciones[participantes[i]] = sorteados[i];
+          }
+          jugadoresRestantes = [...participantes];
+          return;
+        }
+      }
+    }
+
+    sortear();
+    llenarSelect();
+
+    function girar() {
+      let select = document.getElementById("jugador");
+      let jugador = select.value;
+
+      if (!jugador) {
+        alert("⚠️ Debes seleccionar tu nombre antes de girar.");
+        return;
+      }
+      if (!jugadoresRestantes.includes(jugador)) {
+        alert("⚠️ " + jugador + " ya jugó su turno.");
+        return;
+      }
+
+      let amigo = asignaciones[jugador];
+      jugadoresRestantes = jugadoresRestantes.filter(j => j !== jugador);
+
+      let ruleta = document.getElementById("ruleta");
+      let nombres = participantes;
+      let i = 0;
+      let vueltas = 20 + Math.floor(Math.random() * 10);
+
+      let intervalo = setInterval(() => {
+        ruleta.innerText = nombres[i % nombres.length];
+        i++;
+        if (i > vueltas) {
+          clearInterval(intervalo);
+          ruleta.innerText = "🎉";
+          mostrarPopup("Hola " + jugador + " 👋\nTu amigo secreto es: " + amigo + " 🎁");
+          select.value = "";
+        }
+      }, 150);
+    }
+
+    function mostrarPopup(mensaje) {
+      document.getElementById("popup-text").innerText = mensaje;
+      document.getElementById("popup").style.display = "flex";
+    }
+
+    function cerrarPopup() {
+      document.getElementById("popup").style.display = "none";
+    }
+  </script>
+</body>
+  </html>
